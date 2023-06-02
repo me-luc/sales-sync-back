@@ -9,7 +9,7 @@
 		"build": "tsc",
 		"start": "node dist/app.js",
 		"prisma": "npx prisma",
-		"migrate": "npx prisma migrate dev --name init",
+		"dev:migrate": "npx prisma migrate dev && npx prisma generate",
 		"studio": "npx prisma studio"
 	},
 	"keywords": [],
