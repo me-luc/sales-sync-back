@@ -8,17 +8,23 @@ export default function errorHandlingMiddleware(
 	res: Response,
 	_next: NextFunction
 ) {
-	if (err.name === 'UnauthorizedError') {
-		return res.status(httpStatus.UNAUTHORIZED).send(err.message);
+	const { name, message } = err;
+
+	if (name === 'UnauthorizedError') {
+		return res.status(httpStatus.UNAUTHORIZED).send({ message });
 	}
 
-	if (err.name === 'ForbiddenError') {
-		return res.status(httpStatus.FORBIDDEN).send(err.message);
+	if (name === 'ForbiddenError') {
+		return res.status(httpStatus.FORBIDDEN).send({ message });
 	}
 
-	if (err.name === 'BadRequestError') {
-		return res.status(httpStatus.BAD_REQUEST).send(err.message);
+	if (name === 'BadRequestError') {
+		return res.status(httpStatus.BAD_REQUEST).send({ message });
 	}
 
-	return res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err.message);
+	if (name === 'InvalidCredentialsError') {
+		return res.status(httpStatus.UNAUTHORIZED).send({ message });
+	}
+
+	return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ message });
 }
