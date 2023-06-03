@@ -26,5 +26,9 @@ export default function errorHandlingMiddleware(
 		return res.status(httpStatus.UNAUTHORIZED).send({ message });
 	}
 
-	return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ message });
+	console.log(err);
+
+	return res
+		.status(httpStatus.INTERNAL_SERVER_ERROR)
+		.send({ message: 'Internal server error' });
 }
