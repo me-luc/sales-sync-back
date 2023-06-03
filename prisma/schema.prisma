@@ -21,6 +21,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   sessions  Session[]
+  products  Product[]
+  suppliers Supplier[]
 }
 
 model Session {
@@ -32,4 +34,34 @@ model Session {
   updatedAt   DateTime @updatedAt
 
   user        User     @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id         Int      @id @default(autoincrement())
+  name       String
+  photo      String?
+  quantity   Int
+  price      Int
+  description String?
+  
+  supplierId Int?
+  userId     Int
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Supplier {
+  id       Int       @id @default(autoincrement())
+  name     String
+  phone    String?   @unique @db.VarChar(15)
+  address  String?
+  email    String?   @unique @db.VarChar(255)
+  userId   Int
+
+  products Product[]
+  user     User     @relation(fields: [userId], references: [id])
 }
