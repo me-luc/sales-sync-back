@@ -1,7 +1,7 @@
-import { db } from '../config/database';
+import { prisma } from '../config/database';
 
 async function createUser(email: string, password: string, name: string) {
-	return await db.user.create({
+	return await prisma.user.create({
 		data: {
 			email,
 			password,
@@ -11,7 +11,7 @@ async function createUser(email: string, password: string, name: string) {
 }
 
 async function getUserByEmail(email: string) {
-	return await db.user.findUnique({
+	return await prisma.user.findUnique({
 		where: {
 			email,
 		},
