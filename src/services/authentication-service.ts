@@ -8,7 +8,7 @@ async function signIn(email: string, password: string) {
 	if (!user) throw UnauthorizedError('Invalid credentials!');
 
 	await validatePassword(password, user.password);
-	const token = await createToken(String(user.id));
+	const token = createToken(String(user.id));
 	await createSession(user.id, token);
 	return token;
 }
