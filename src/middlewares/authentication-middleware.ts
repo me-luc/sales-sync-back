@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import UnauthorizedError from '../errors/unauthorized-error';
 import * as jwt from 'jsonwebtoken';
 import { AuthenticatedRequest, JWTPayload } from '../types/application-types';
+import sessionRepository from '../repositories/session-repository';
 
 export async function authenticateToken(
 	req: AuthenticatedRequest,
@@ -20,6 +21,11 @@ export async function authenticateToken(
 			token,
 			process.env.ACCESS_TOKEN_SECRET as string
 		) as JWTPayload;
+
+		const existingSession = await sessionRepository.getSessionByToken(
+			token
+		);
+		if (!existingSession) throw UnauthorizedError('Invalid token');
 
 		req.userId = userId;
 		return next();
