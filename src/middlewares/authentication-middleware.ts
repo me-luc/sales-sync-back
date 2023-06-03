@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import UnauthorizedError from '../errors/unauthorized-error';
 import * as jwt from 'jsonwebtoken';
 import { AuthenticatedRequest, JWTPayload } from '../types/application-types';
-import sessionRepository from '../repositories/session-repository';
+import sessionRepository from '../repositories/sessions-repository';
 
 export async function authenticateToken(
 	req: AuthenticatedRequest,

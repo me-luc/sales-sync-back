@@ -1,6 +1,6 @@
 import { ApplicationError } from '../types';
 
-export default function ForbiddenError(
+export function ForbiddenError(
 	message: string = 'Forbidden'
 ): ApplicationError {
 	return {

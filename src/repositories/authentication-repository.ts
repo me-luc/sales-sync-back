@@ -18,9 +18,7 @@ async function getUserByEmail(email: string) {
 	});
 }
 
-const authenticationRepository = {
+export const authenticationRepository = {
 	createUser,
 	getUserByEmail,
 };
-
-export default authenticationRepository;

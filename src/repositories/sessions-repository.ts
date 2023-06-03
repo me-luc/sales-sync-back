@@ -25,9 +25,8 @@ async function getSessionByToken(token: string) {
 	});
 }
 
-const sessionRepository = {
+export const sessionsRepository = {
 	createSession,
 	deleteSession,
 	getSessionByToken,
 };
-export default sessionRepository;
