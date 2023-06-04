@@ -41,7 +41,7 @@ model Product {
   name       String
   photo      String?
   quantity   Int
-  price      Int
+  price      Decimal
   description String?
   
   supplierId Int?
