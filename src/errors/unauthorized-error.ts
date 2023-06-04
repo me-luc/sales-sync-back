@@ -1,6 +1,6 @@
 import { ApplicationError } from '../types';
 
-export default function UnauthorizedError(
+export function UnauthorizedError(
 	message: string = 'Unauthorized'
 ): ApplicationError {
 	return {

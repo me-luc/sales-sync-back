@@ -1,6 +1,6 @@
 import { ApplicationError } from '../types';
 
-export default function BadRequestError(
+export function BadRequestError(
 	message: string = 'Bad Request'
 ): ApplicationError {
 	return {

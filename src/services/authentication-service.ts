@@ -1,16 +1,14 @@
 import jwt from 'jsonwebtoken';
-import UnauthorizedError from '../errors/unauthorized-error';
-import authenticationRepository from '../repositories/authentication-repository';
-import sessionRepository from '../repositories/session-repository';
 import bcrypt from 'bcrypt';
-import InvalidCredentialsError from '../errors/invalid-credentials-error';
+import { InvalidCredentialsError, UnauthorizedError } from '../errors/';
+import { authenticationRepository, sessionsRepository } from '../repositories';
 
 async function signIn(email: string, password: string) {
 	const user = await authenticationRepository.getUserByEmail(email);
 	if (!user) throw UnauthorizedError('Invalid credentials!');
 
 	await validatePassword(password, user.password);
-	const token = await createToken(String(user.id));
+	const token = createToken(String(user.id));
 	await createSession(user.id, token);
 	return token;
 }
@@ -46,5 +44,5 @@ function createToken(userId: string) {
 }
 
 async function createSession(userId: number, token: string) {
-	await sessionRepository.createSession(userId, token);
+	await sessionsRepository.createSession(userId, token);
 }

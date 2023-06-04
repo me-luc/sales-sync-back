@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import UnauthorizedError from '../errors/unauthorized-error';
 import * as jwt from 'jsonwebtoken';
-import { AuthenticatedRequest, JWTPayload } from '../types/application-types';
-import sessionRepository from '../repositories/session-repository';
+import { sessionsRepository } from '../repositories';
+import { UnauthorizedError } from '../errors';
+import { AuthenticatedRequest, JWTPayload } from 'types';
 
 export async function authenticateToken(
 	req: AuthenticatedRequest,
@@ -13,7 +13,7 @@ export async function authenticateToken(
 	const token = authHeader && authHeader.split(' ')[1];
 
 	if (token === null || token === undefined) {
-		throw UnauthorizedError('Missing token');
+		return res.sendStatus(401);
 	}
 
 	try {
@@ -22,7 +22,7 @@ export async function authenticateToken(
 			process.env.ACCESS_TOKEN_SECRET as string
 		) as JWTPayload;
 
-		const existingSession = await sessionRepository.getSessionByToken(
+		const existingSession = await sessionsRepository.getSessionByToken(
 			token
 		);
 		if (!existingSession) throw UnauthorizedError('Invalid token');
@@ -30,6 +30,6 @@ export async function authenticateToken(
 		req.userId = userId;
 		return next();
 	} catch (error) {
-		throw UnauthorizedError('Invalid token');
+		return res.sendStatus(401);
 	}
 }
