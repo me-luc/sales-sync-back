@@ -26,7 +26,13 @@ export default function errorHandlingMiddleware(
 		return res.status(httpStatus.UNAUTHORIZED).send({ message });
 	}
 
-	console.log(err);
+	if (err instanceof SyntaxError) {
+		return res
+			.status(httpStatus.BAD_REQUEST)
+			.send({ message: 'Syntax error!' });
+	}
+
+	console.log('NEW ERROR >>> ', err);
 
 	return res
 		.status(httpStatus.INTERNAL_SERVER_ERROR)
