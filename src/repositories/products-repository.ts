@@ -2,9 +2,12 @@ import { prisma } from '../config/database';
 import { ProductCreateSubset, ProductUpdateSubset } from '../types/';
 
 async function createProduct(userId: number, product: ProductCreateSubset) {
-	console.log('createProduct', product);
 	return await prisma.product.create({
-		data: { ...product, userId },
+		data: {
+			...product,
+			quantity: Number(product.quantity),
+			userId,
+		},
 	});
 }
 
@@ -12,6 +15,9 @@ async function getProductsByUserId(userId: number) {
 	return await prisma.product.findMany({
 		where: {
 			userId,
+		},
+		orderBy: {
+			createdAt: 'desc',
 		},
 	});
 }
@@ -35,6 +41,13 @@ async function updateProduct(product: ProductUpdateSubset) {
 	});
 }
 
+async function updateProductPhoto(productId: number, photo: string) {
+	await prisma.product.update({
+		where: { id: productId },
+		data: { photo },
+	});
+}
+
 async function deleteProductById(id: number) {
 	return await prisma.product.delete({
 		where: {
@@ -49,4 +62,5 @@ export const productsRepository = {
 	getProductById,
 	updateProduct,
 	deleteProductById,
+	updateProductPhoto,
 };

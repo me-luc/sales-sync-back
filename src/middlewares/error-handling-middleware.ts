@@ -32,7 +32,7 @@ export default function errorHandlingMiddleware(
 			.send({ message: 'Syntax error!' });
 	}
 
-	console.log('NEW ERROR >>> ', err);
+	console.log(err);
 
 	return res
 		.status(httpStatus.INTERNAL_SERVER_ERROR)

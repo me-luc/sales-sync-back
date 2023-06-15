@@ -5,11 +5,12 @@ import { productsRepository } from '../repositories';
 import { ProductCreateSubset, ProductUpdateSubset } from '../types';
 
 async function createProduct(userId: number, product: ProductCreateSubset) {
-	await productsRepository.createProduct(userId, product);
+	const newProduct = await productsRepository.createProduct(userId, product);
+	return newProduct;
 }
 
 async function deleteProduct(productId: number, userId: number) {
-	await checkIfUserOwnsProduct(productId, userId);
+	await checkIfUserOwnsProduct(userId, productId);
 	await productsRepository.deleteProductById(productId);
 }
 
@@ -23,11 +24,16 @@ async function getProductsByUser(userId: number) {
 	return products;
 }
 
+async function updateProductPhoto(productId: number, photo: string) {
+	if (photo) await productsRepository.updateProductPhoto(productId, photo);
+}
+
 export const productsService = {
 	createProduct,
 	deleteProduct,
 	updateProduct,
 	getProductsByUser,
+	updateProductPhoto,
 };
 
 async function checkIfUserOwnsProduct(userId: number, productId: number) {

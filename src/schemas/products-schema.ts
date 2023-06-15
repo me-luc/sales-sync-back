@@ -6,11 +6,16 @@ const productSchema = Joi.object({
 	description: Joi.string().optional(),
 	quantity: Joi.number().required(),
 	supplierId: Joi.number().optional(),
-	photo: Joi.string().uri().optional(),
+	photo: Joi.any().optional(),
 });
 
 export const productCreateSchema = Joi.object({
-	product: productSchema,
+	name: Joi.string().required(),
+	price: Joi.number().required(),
+	description: Joi.string().optional(),
+	quantity: Joi.number().required(),
+	supplier: Joi.number().optional(),
+	formData: Joi.any().optional(),
 });
 
 export const productUpdateSchema = Joi.object({

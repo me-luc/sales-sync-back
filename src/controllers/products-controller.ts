@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { productsService } from '../services/';
+import { NextFunction, Response } from 'express';
+import { productsService, filesService } from '../services/';
 import { AuthenticatedRequest } from '../types';
 import httpStatus from 'http-status';
 
@@ -9,10 +9,20 @@ export async function createProduct(
 	next: NextFunction
 ) {
 	try {
-		const { product } = req.body;
+		const product = req.body;
+		const file = req.file;
 		const userId = req.userId;
 
-		await productsService.createProduct(Number(userId), product);
+		const newProduct = await productsService.createProduct(
+			Number(userId),
+			product
+		);
+
+		if (file) {
+			console.log('file >>>', file);
+			await filesService.uploadProductPhoto(file, Number(newProduct.id));
+		}
+
 		res.sendStatus(httpStatus.CREATED);
 	} catch (error) {
 		next(error);
@@ -25,10 +35,10 @@ export async function deleteProduct(
 	next: NextFunction
 ) {
 	try {
-		const { productId } = req.body;
+		const productId = req.params.id;
 		const userId = req.userId;
 
-		await productsService.deleteProduct(Number(userId), productId);
+		await productsService.deleteProduct(Number(productId), Number(userId));
 		res.sendStatus(httpStatus.NO_CONTENT);
 	} catch (error) {
 		next(error);
