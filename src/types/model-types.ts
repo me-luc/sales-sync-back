@@ -10,3 +10,12 @@ export type ProductUpdateSubset = Partial<ProductSubset> & {
 };
 
 export type ProductCreateSubset = Omit<ProductSubset, 'userId' | 'supplierId'>;
+
+export interface ProductSaleSubset {
+	id: number;
+	quantity: number;
+}
+
+export type ProductApiSubset = Product & {
+	quantity: number;
+};
