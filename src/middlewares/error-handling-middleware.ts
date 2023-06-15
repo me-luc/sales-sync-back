@@ -26,6 +26,10 @@ export default function errorHandlingMiddleware(
 		return res.status(httpStatus.UNAUTHORIZED).send({ message });
 	}
 
+	if (name === 'NotFoundError') {
+		return res.status(httpStatus.NOT_FOUND).send({ message });
+	}
+
 	if (err instanceof SyntaxError) {
 		return res
 			.status(httpStatus.BAD_REQUEST)

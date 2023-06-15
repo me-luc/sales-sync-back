@@ -1,15 +1,19 @@
 import { Response, Router, Request } from 'express';
 import errorHandlingMiddleware from '../middlewares/error-handling-middleware';
-import { authenticationRouter } from './authentication-route';
-import { productsRouter } from './products-route';
-import { filesRouter } from './files-route';
+import {
+	authenticationRouter,
+	productsRouter,
+	filesRouter,
+	salesRouter,
+} from './index';
 
 const routes = Router();
 routes
 	.use('/health', sendHealthStatus)
 	.use('/auth', authenticationRouter)
 	.use('/products', productsRouter)
-	.use('/files', filesRouter);
+	.use('/files', filesRouter)
+	.use('/sales', salesRouter);
 
 routes.use(errorHandlingMiddleware);
 routes.use(handleNotFoundRoute);

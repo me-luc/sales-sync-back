@@ -19,7 +19,6 @@ export async function createProduct(
 		);
 
 		if (file) {
-			console.log('file >>>', file);
 			await filesService.uploadProductPhoto(file, Number(newProduct.id));
 		}
 
