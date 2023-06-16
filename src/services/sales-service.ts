@@ -1,6 +1,7 @@
 import { Product } from '@prisma/client';
 import { prisma } from 'config/database';
-import { NotFoundError } from 'errors';
+import { stripe } from 'config/stripe';
+import { ForbiddenError, NotFoundError, UnauthorizedError } from 'errors';
 import { productsRepository, salesRepository } from 'repositories';
 import { paymentRepository } from 'repositories/payments-repository';
 import { ProductApiSubset, ProductSaleSubset } from 'types';
@@ -24,28 +25,50 @@ async function createManualSale(userId: number, products: ProductSaleSubset[]) {
 		productsArray,
 		totalPrice
 	);
-
-	// const newSale = await salesRepository.createManualSale(userId);
-
-	// await salesRepository.addProductsToSale(productsArray, newSale.id);
-
-	// await paymentRepository.createPayment(
-	// 	totalPrice,
-	// 	'PAID',
-	// 	'CASH',
-	// 	newSale.id
-	// );
-
-	// for (const product of productsArray) {
-	// 	const foundProduct = await checkIfProductExists(product.id);
-	// 	await productsRepository.updateProduct({
-	// 		...product,
-	// 		quantity: foundProduct.quantity - product.quantity,
-	// 	});
-	// }
 }
 
-export const salesService = { createManualSale };
+async function createStripeSale(userId: number, products: ProductSaleSubset[]) {
+	const productsIds = products.map((product) => product.id);
+	const foundProducts = await productsRepository.findProductsByIds(
+		productsIds
+	);
+
+	checkIfUserOwnsProduct(userId, foundProducts);
+
+	const formattedStripeProducts = foundProducts.map((product) => ({
+		price_data: {
+			currency: 'brl',
+			product_data: {
+				name: product.name,
+			},
+			unit_amount: Number(product.price) * 100,
+		},
+		quantity: products.find((p) => p.id === product.id)?.quantity || 0,
+	}));
+
+	const session = await stripe.checkout.sessions.create({
+		payment_method_types: ['card'],
+		line_items: formattedStripeProducts,
+		mode: 'payment',
+		success_url: `${process.env.CLIENT_URL}/products`,
+		cancel_url: `${process.env.CLIENT_URL}/products`,
+		locale: 'pt-BR',
+	});
+
+	const { url } = session;
+
+	return url;
+}
+
+export const salesService = { createManualSale, createStripeSale };
+
+function checkIfUserOwnsProduct(userId: number, products: Product[]) {
+	for (const product of products) {
+		if (product.userId !== userId) {
+			throw ForbiddenError('You do not own this product');
+		}
+	}
+}
 
 function checkProductStock(product: Product, requestedQuantity: number) {
 	if (product.quantity < requestedQuantity) {
