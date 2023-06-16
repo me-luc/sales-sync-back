@@ -56,6 +56,16 @@ async function deleteProductById(id: number) {
 	});
 }
 
+async function findProductsByIds(productsIds: number[]) {
+	return await prisma.product.findMany({
+		where: {
+			id: {
+				in: productsIds,
+			},
+		},
+	});
+}
+
 export const productsRepository = {
 	createProduct,
 	getProductsByUserId,
@@ -63,4 +73,5 @@ export const productsRepository = {
 	updateProduct,
 	deleteProductById,
 	updateProductPhoto,
+	findProductsByIds,
 };
