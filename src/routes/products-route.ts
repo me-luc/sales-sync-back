@@ -8,7 +8,6 @@ import {
 } from 'controllers';
 import {
 	productCreateSchema,
-	productDeleteSchema,
 	productUpdateSchema,
 } from 'schemas/products-schema';
 import { uploadOptionalMiddleware } from 'middlewares/';

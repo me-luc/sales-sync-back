@@ -1,8 +1,8 @@
-import { prisma } from '../config/database';
 import { ForbiddenError } from '../errors';
 import { NotFoundError } from '../errors/not-found-error';
 import { productsRepository } from '../repositories';
 import { ProductCreateSubset, ProductUpdateSubset } from '../types';
+import { filesService } from './files-service';
 
 async function createProduct(userId: number, product: ProductCreateSubset) {
 	const newProduct = await productsRepository.createProduct(userId, product);
@@ -10,8 +10,9 @@ async function createProduct(userId: number, product: ProductCreateSubset) {
 }
 
 async function deleteProduct(productId: number, userId: number) {
-	await checkIfUserOwnsProduct(userId, productId);
+	const product = await checkIfUserOwnsProduct(userId, productId);
 	await productsRepository.deleteProductById(productId);
+	await filesService.deleteProductPhoto(product.photo, productId);
 }
 
 async function updateProduct(userId: number, product: ProductUpdateSubset) {
@@ -43,4 +44,6 @@ async function checkIfUserOwnsProduct(userId: number, productId: number) {
 	if (product.userId !== userId) {
 		throw ForbiddenError('You need permission to access this product');
 	}
+
+	return product;
 }

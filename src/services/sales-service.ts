@@ -3,7 +3,6 @@ import { prisma } from 'config/database';
 import { stripe } from 'config/stripe';
 import { ForbiddenError, NotFoundError, UnauthorizedError } from 'errors';
 import { productsRepository, salesRepository } from 'repositories';
-import { paymentRepository } from 'repositories/payments-repository';
 import { ProductApiSubset, ProductSaleSubset } from 'types';
 
 async function createManualSale(userId: number, products: ProductSaleSubset[]) {
@@ -60,7 +59,16 @@ async function createStripeSale(userId: number, products: ProductSaleSubset[]) {
 	return url;
 }
 
-export const salesService = { createManualSale, createStripeSale };
+async function getUserSales(userId: number) {
+	const products = await salesRepository.getUserSales(userId);
+	return products;
+}
+
+export const salesService = {
+	createManualSale,
+	createStripeSale,
+	getUserSales,
+};
 
 function checkIfUserOwnsProduct(userId: number, products: Product[]) {
 	for (const product of products) {

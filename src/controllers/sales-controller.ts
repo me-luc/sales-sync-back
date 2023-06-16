@@ -19,6 +19,21 @@ export async function sellManually(
 	}
 }
 
+export async function getUserSales(
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const userId = req.userId;
+
+		const sales = await salesService.getUserSales(Number(userId));
+		res.status(httpStatus.OK).send(sales);
+	} catch (error) {
+		next(error);
+	}
+}
+
 export async function sellProduct(
 	req: AuthenticatedRequest,
 	res: Response,

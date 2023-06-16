@@ -1,4 +1,5 @@
 import {
+	getUserSales,
 	handlePaymentFailed,
 	handlePaymentIntent,
 	handlePaymentSucceed,
@@ -16,6 +17,7 @@ salesRouter
 	.post('/stripe/cancel', handlePaymentFailed)
 	.post('/stripe/intent', handlePaymentIntent)
 	.all('/*', authenticateToken)
+	.get('/', getUserSales)
 	.post('/manual', validateSchema(ManualSaleBodySchema), sellManually)
 	.post('/', sellProduct);
 
