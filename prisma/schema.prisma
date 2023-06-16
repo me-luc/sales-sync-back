@@ -107,10 +107,11 @@ enum PaymentMethod {
 }
 
 model Payment {
-  id     Int           @id @default(autoincrement())
-  amount Decimal
-  status PaymentStatus
-  method PaymentMethod
+  id       Int           @id @default(autoincrement())
+  amount   Decimal
+  status   PaymentStatus
+  method   PaymentMethod
+  stripeId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
