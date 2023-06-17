@@ -66,6 +66,7 @@ async function findProductsByIds(productsIds: number[]) {
 			id: {
 				in: productsIds,
 			},
+			deletedAt: null,
 		},
 	});
 }

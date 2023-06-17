@@ -22,9 +22,12 @@ async function addProductsToSale(products: ProductApiSubset[], saleId: number) {
 }
 
 async function getUserSales(userId: number) {
-	const sales = await prisma.sale.findMany({
+	return await prisma.sale.findMany({
 		where: {
 			userId,
+			payment: {
+				status: 'PAID',
+			},
 		},
 		include: {
 			saleProducts: {
@@ -38,7 +41,6 @@ async function getUserSales(userId: number) {
 			createdAt: 'desc',
 		},
 	});
-	return sales;
 }
 
 async function handleCreateSaleTransaction(
