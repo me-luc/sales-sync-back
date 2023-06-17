@@ -21,6 +21,28 @@ async function addProductsToSale(products: ProductApiSubset[], saleId: number) {
 	});
 }
 
+async function getUserSales(userId: number) {
+	return await prisma.sale.findMany({
+		where: {
+			userId,
+			payment: {
+				status: 'PAID',
+			},
+		},
+		include: {
+			saleProducts: {
+				include: {
+					product: true,
+				},
+			},
+			payment: true,
+		},
+		orderBy: {
+			createdAt: 'desc',
+		},
+	});
+}
+
 async function handleCreateSaleTransaction(
 	userId: number,
 	products: ProductApiSubset[],
@@ -83,4 +105,5 @@ export const salesRepository = {
 	createManualSale,
 	addProductsToSale,
 	handleCreateSaleTransaction,
+	getUserSales,
 };

@@ -48,8 +48,9 @@ model Product {
   supplierId Int?
   userId     Int
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   supplier     Supplier?      @relation(fields: [supplierId], references: [id])
   user         User           @relation(fields: [userId], references: [id])

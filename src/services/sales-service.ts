@@ -1,21 +1,30 @@
 import { Product } from '@prisma/client';
-import { prisma } from 'config/database';
 import { stripe } from 'config/stripe';
-import { ForbiddenError, NotFoundError, UnauthorizedError } from 'errors';
+import dayjs, { locale } from 'dayjs';
+import 'dayjs/locale/pt-br';
+import { ForbiddenError, NotFoundError } from 'errors';
 import { productsRepository, salesRepository } from 'repositories';
-import { paymentRepository } from 'repositories/payments-repository';
 import { ProductApiSubset, ProductSaleSubset } from 'types';
 
 async function createManualSale(userId: number, products: ProductSaleSubset[]) {
+	const productsIds = products.map((product) => product.id);
+	const foundProducts = await productsRepository.findProductsByIds(
+		productsIds
+	);
+
+	if (!foundProducts.length) throw NotFoundError('Products not found');
+	checkIfUserOwnsProduct(userId, foundProducts);
+
 	let totalPrice = 0;
 	const productsArray: ProductApiSubset[] = [];
 
-	for (const product of products) {
-		const foundProduct = await checkIfProductExists(product.id);
-		checkProductStock(foundProduct, product.quantity);
-		totalPrice += Number(foundProduct.price) * product.quantity;
+	for (const product of foundProducts) {
+		const productQuantity = products.find((p) => p.id === product.id);
+		checkIfProductExists(product);
+		checkProductStock(product, productQuantity.quantity);
+		totalPrice += Number(product.price) * product.quantity;
 		productsArray.push({
-			...foundProduct,
+			...product,
 			quantity: product.quantity,
 		});
 	}
@@ -60,7 +69,31 @@ async function createStripeSale(userId: number, products: ProductSaleSubset[]) {
 	return url;
 }
 
-export const salesService = { createManualSale, createStripeSale };
+async function getUserSales(userId: number) {
+	const products = await salesRepository.getUserSales(userId);
+	const salesPerDate = products.map((sale) => ({
+		id: sale.id,
+		date: dayjs(sale.createdAt)
+			.locale('pt-br')
+			.format('DD [de] MMM [de] YYYY'),
+		saleProducts: sale.saleProducts.map((product) => ({
+			id: product.productId,
+			quantity: product.quantity,
+			price: Number(product.price),
+			photo: product.product.photo,
+			name: product.product.name,
+		})),
+		paymentMethod: translatePaymentMethod(sale.payment.method),
+		totalPrice: Number(sale.payment.amount),
+	}));
+	return salesPerDate;
+}
+
+export const salesService = {
+	createManualSale,
+	createStripeSale,
+	getUserSales,
+};
 
 function checkIfUserOwnsProduct(userId: number, products: Product[]) {
 	for (const product of products) {
@@ -71,13 +104,19 @@ function checkIfUserOwnsProduct(userId: number, products: Product[]) {
 }
 
 function checkProductStock(product: Product, requestedQuantity: number) {
-	if (product.quantity < requestedQuantity) {
+	if (product.quantity < requestedQuantity || product.quantity === 0)
 		throw NotFoundError('Product out of stock');
-	}
 }
 
-async function checkIfProductExists(id: number) {
-	const product = await productsRepository.getProductById(id);
-	if (!product) throw NotFoundError('Product not found');
-	return product;
+function checkIfProductExists(product: Product) {
+	if (product.deletedAt !== null) throw NotFoundError('Product not found');
+}
+
+function translatePaymentMethod(method: string) {
+	switch (method) {
+		case 'CASH':
+			return 'Dinheiro';
+		case 'CARD':
+			return 'Cartão de crédito';
+	}
 }

@@ -15,6 +15,7 @@ async function getProductsByUserId(userId: number) {
 	return await prisma.product.findMany({
 		where: {
 			userId,
+			deletedAt: null,
 		},
 		orderBy: {
 			createdAt: 'desc',
@@ -49,9 +50,12 @@ async function updateProductPhoto(productId: number, photo: string) {
 }
 
 async function deleteProductById(id: number) {
-	return await prisma.product.delete({
+	return await prisma.product.update({
 		where: {
 			id,
+		},
+		data: {
+			deletedAt: new Date(),
 		},
 	});
 }
@@ -62,6 +66,7 @@ async function findProductsByIds(productsIds: number[]) {
 			id: {
 				in: productsIds,
 			},
+			deletedAt: null,
 		},
 	});
 }
