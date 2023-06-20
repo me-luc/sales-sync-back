@@ -69,6 +69,42 @@ async function createStripeSale(userId: number, products: ProductSaleSubset[]) {
 	return url;
 }
 
+async function createStripeSeparateSale(
+	userId: number,
+	products: ProductSaleSubset[]
+) {
+	const productsIds = products.map((product) => product.id);
+	const foundProducts = await productsRepository.findProductsByIds(
+		productsIds
+	);
+
+	checkIfUserOwnsProduct(userId, foundProducts);
+
+	const formattedStripeProducts = foundProducts.map((product) => ({
+		price_data: {
+			currency: 'brl',
+			product_data: {
+				name: product.name,
+			},
+			unit_amount: Number(product.price) * 100,
+		},
+		quantity: products.find((p) => p.id === product.id)?.quantity || 0,
+	}));
+
+	const session = await stripe.checkout.sessions.create({
+		payment_method_types: ['card'],
+		line_items: formattedStripeProducts,
+		mode: 'payment',
+		success_url: `${process.env.CLIENT_URL}/products`,
+		cancel_url: `${process.env.CLIENT_URL}/products`,
+		locale: 'pt-BR',
+	});
+
+	const { url } = session;
+
+	return url;
+}
+
 async function getUserSales(userId: number) {
 	const products = await salesRepository.getUserSales(userId);
 	const salesPerDate = products.map((sale) => ({
