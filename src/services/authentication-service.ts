@@ -30,9 +30,23 @@ async function signUp(email: string, password: string, name: string) {
 	return token;
 }
 
+async function checkToken(token: string) {
+	const session = await authenticationRepository.getToken(token);
+	if (!session) throw UnauthorizedError('Invalid token!');
+
+	const { userId } = jwt.verify(
+		token,
+		process.env.ACCESS_TOKEN_SECRET as string
+	) as { userId: string };
+
+	if (Number(userId) !== session.userId)
+		throw UnauthorizedError('Invalid token!');
+}
+
 const authenticationService = {
 	signIn,
 	signUp,
+	checkToken,
 };
 
 export default authenticationService;

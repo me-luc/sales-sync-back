@@ -18,7 +18,16 @@ async function getUserByEmail(email: string) {
 	});
 }
 
+async function getToken(token: string) {
+	return await prisma.session.findUnique({
+		where: {
+			token,
+		},
+	});
+}
+
 export const authenticationRepository = {
 	createUser,
 	getUserByEmail,
+	getToken,
 };

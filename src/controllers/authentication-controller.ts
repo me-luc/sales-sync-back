@@ -22,3 +22,22 @@ export async function signUp(req: Request, res: Response, next: NextFunction) {
 		next(err);
 	}
 }
+
+export async function checkToken(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const token = req.headers.authorization?.split(' ')[1];
+		if (!token)
+			return res.status(httpStatus.UNAUTHORIZED).send({
+				message: 'Invalid token!',
+			});
+
+		await authenticationService.checkToken(token);
+		return res.sendStatus(httpStatus.OK);
+	} catch (err) {
+		next(err);
+	}
+}
