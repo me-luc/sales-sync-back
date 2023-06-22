@@ -36,7 +36,9 @@ export async function checkToken(
 			});
 
 		await authenticationService.checkToken(token);
-		return res.sendStatus(httpStatus.OK);
+
+		const user = await authenticationService.getUserFromToken(token);
+		return res.status(httpStatus.OK).send({ user });
 	} catch (err) {
 		next(err);
 	}
