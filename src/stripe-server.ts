@@ -59,21 +59,27 @@ app.post(
 			case 'payment_intent.succeeded':
 				const paymentIntentSucceeded = event.data.object;
 				await axios.post(
-					`${process.env.LOCAL_API_URL}/sales/stripe/success`,
+					`${process.env.LOCAL_API_URL}/webhooks/payment-success`,
 					paymentIntentSucceeded
 				);
 				break;
 			case 'payment_intent.created':
 				const paymentIntentCreated = event.data.object;
 				await axios.post(
-					`${process.env.LOCAL_API_URL}/api/sales/stripe/intent`,
+					`${process.env.LOCAL_API_URL}/webhooks/payment-intent`,
 					paymentIntentCreated
 				);
 			case 'payment_intent.cancelled':
 				const paymentIntentCancelled = event.data.object;
 				await axios.post(
-					`${process.env.LOCAL_API_URL}/api/sales/stripe/cancel`,
+					`${process.env.LOCAL_API_URL}/webhooks/payment-cancel`,
 					paymentIntentCancelled
+				);
+			case 'account.updated':
+				const accountUpdated = event.data.object;
+				await axios.post(
+					`${process.env.LOCAL_API_URL}/webhooks/account-updated`,
+					accountUpdated
 				);
 			default:
 				console.log(`Unhandled event type ${event.type}`);
