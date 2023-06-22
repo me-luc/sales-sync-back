@@ -64,8 +64,6 @@ export async function updateStripeAccount(
 	try {
 		const userId = req.userId;
 
-		console.log('Updating stripe account for user', userId, typeof userId);
-
 		const user = await userService.getUserById(Number(userId));
 
 		const account = await stripeService.createNewAccount(
@@ -120,6 +118,22 @@ export async function handlePaymentIntent(
 
 		console.log(`💰 PaymentIntent status: ${paymentIntent.status}`);
 
+		res.sendStatus(httpStatus.OK);
+	} catch (error) {
+		next(error);
+	}
+}
+
+export async function handleAccountUpdated(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const { disabled_reason } = req.body;
+		const active = disabled_reason ? false : true;
+
+		await userService.updateUserStripeAccountStatus(req.body.id, active);
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {
 		next(error);
