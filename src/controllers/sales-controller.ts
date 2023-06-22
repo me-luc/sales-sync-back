@@ -56,6 +56,23 @@ export async function sellProduct(
 	}
 }
 
+export async function getPaymentLink(
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const { products } = req.body;
+		const userId = req.userId;
+
+		const url = await salesService.getPaymentLink(Number(userId), products);
+
+		return res.status(httpStatus.CREATED).send({ url });
+	} catch (error) {
+		next(error);
+	}
+}
+
 export async function updateStripeAccount(
 	req: AuthenticatedRequest,
 	res: Response,
@@ -86,7 +103,9 @@ export async function handlePaymentSucceed(
 	next: NextFunction
 ) {
 	try {
-		console.log('Payment succeeded');
+		const paymentIntent = req.body;
+
+		await salesService.updateSaleStatus(paymentIntent.id, 'PAID');
 
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {
@@ -100,7 +119,7 @@ export async function handlePaymentFailed(
 	next: NextFunction
 ) {
 	try {
-		console.log('Payment failed');
+		console.log('🚫 Payment failed', req.body);
 
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {
@@ -114,9 +133,7 @@ export async function handlePaymentIntent(
 	next: NextFunction
 ) {
 	try {
-		const { paymentIntent } = req.body.data.object;
-
-		console.log(`💰 PaymentIntent status: ${paymentIntent.status}`);
+		console.log('💰 Payment intent', req.body);
 
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {

@@ -22,8 +22,6 @@ async function updateUserStripeAccountStatus(
 	}
 
 	await userRepository.updateUserStripeAccountStatus(user.id, active);
-
-	console.log('updated > ', active);
 }
 
 export const userService = { getUserById, updateUserStripeAccountStatus };

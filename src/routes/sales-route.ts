@@ -1,16 +1,20 @@
-import { getUserSales, sellManually, sellProduct } from 'controllers';
+import {
+	getPaymentLink,
+	getUserSales,
+	sellManually,
+	sellProduct,
+} from 'controllers';
 import { Router } from 'express';
 import { authenticateToken, validateSchema } from 'middlewares';
-import { ManualSaleBodySchema } from 'schemas/sales-schema';
+import { SaleBodySchema } from 'schemas/sales-schema';
 
 const salesRouter = Router();
 
 salesRouter
-
 	.all('/*', authenticateToken)
 	.get('/', getUserSales)
-	.post('/manual', validateSchema(ManualSaleBodySchema), sellManually)
+	.post('/manual', validateSchema(SaleBodySchema), sellManually)
 	.post('/', sellProduct)
-	.post('/payment-link');
+	.post('/payment-link', validateSchema(SaleBodySchema), getPaymentLink);
 
 export { salesRouter };
