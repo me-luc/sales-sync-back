@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { salesService } from 'services';
+import { stripeService } from 'services/stripe-service';
+import { userService } from 'services/user-service';
 import { AuthenticatedRequest } from 'types';
 
 export async function sellManually(
@@ -49,6 +51,32 @@ export async function sellProduct(
 		);
 
 		return res.status(httpStatus.CREATED).send({ url });
+	} catch (error) {
+		next(error);
+	}
+}
+
+export async function updateStripeAccount(
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const userId = req.userId;
+
+		console.log('Updating stripe account for user', userId, typeof userId);
+
+		const user = await userService.getUserById(Number(userId));
+
+		const account = await stripeService.createNewAccount(
+			Number(userId),
+			user.email,
+			user.name
+		);
+
+		const url = await stripeService.getUpdateAccountLink(account.id);
+
+		res.status(httpStatus.OK).send({ url });
 	} catch (error) {
 		next(error);
 	}

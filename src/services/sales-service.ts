@@ -19,13 +19,13 @@ async function createManualSale(userId: number, products: ProductSaleSubset[]) {
 	const productsArray: ProductApiSubset[] = [];
 
 	for (const product of foundProducts) {
-		const productQuantity = products.find((p) => p.id === product.id);
+		const saleProduct = products.find((p) => p.id === product.id);
 		checkIfProductExists(product);
-		checkProductStock(product, productQuantity.quantity);
-		totalPrice += Number(product.price) * product.quantity;
+		checkProductStock(product, saleProduct.quantity);
+		totalPrice += Number(product.price) * saleProduct.quantity;
 		productsArray.push({
 			...product,
-			quantity: product.quantity,
+			quantity: saleProduct.quantity,
 		});
 	}
 

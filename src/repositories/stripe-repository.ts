@@ -14,27 +14,30 @@ async function createNewAccount(
 	last_name: string
 ) {
 	return await stripe.accounts.create({
-		type: 'standard',
+		type: 'express',
 		email,
-		business_type: 'individual',
 		individual: {
 			email,
 			first_name,
 			last_name,
 		},
-		business_profile: {
-			name: first_name + ' Store',
+		capabilities: {
+			card_payments: { requested: true },
+			transfers: { requested: true },
 		},
-		// default_currency: 'BRL',
-		// external_account: {
-		// 	object: 'bank_account',
-		// 	country: 'BR',
-		// 	currency: 'BRL',
-		// 	account_holder_name: first_name + ' ' + last_name,
-		// 	account_holder_type: 'individual',
-		// 	routing_number: '260-0001',
-		// 	account_number: '0001234',
-		// },
+
+		country: 'BR',
+		default_currency: 'brl',
+
+		business_type: 'individual',
+
+		settings: {
+			payouts: {
+				schedule: {
+					interval: 'daily',
+				},
+			},
+		},
 	});
 }
 
@@ -42,7 +45,7 @@ async function createUpdateAccountLink(stripeAccountId: string) {
 	return await stripe.accountLinks.create({
 		account: stripeAccountId,
 		refresh_url: `${process.env.CLIENT_URL}/refresh`,
-		return_url: `${process.env.CLIENT_URL}/profile`,
+		return_url: `${process.env.CLIENT_URL}/products`,
 		type: 'account_onboarding',
 	});
 }
