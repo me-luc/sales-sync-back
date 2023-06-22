@@ -11,12 +11,14 @@ datasource db {
 }
 
 model User {
-  id              Int     @id @default(autoincrement())
-  email           String  @unique @db.VarChar(255)
-  name            String  @db.VarChar(255)
-  password        String
-  phone           String? @unique @db.VarChar(15)
-  stripeAccountId String  @unique @default("")
+  id       Int     @id @default(autoincrement())
+  email    String  @unique @db.VarChar(255)
+  name     String  @db.VarChar(255)
+  password String
+  phone    String? @unique @db.VarChar(15)
+
+  stripeAccountId        String  @unique @default("")
+  stripeCompletedProfile Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
