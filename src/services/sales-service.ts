@@ -19,13 +19,13 @@ async function createManualSale(userId: number, products: ProductSaleSubset[]) {
 	const productsArray: ProductApiSubset[] = [];
 
 	for (const product of foundProducts) {
-		const productQuantity = products.find((p) => p.id === product.id);
+		const saleProduct = products.find((p) => p.id === product.id);
 		checkIfProductExists(product);
-		checkProductStock(product, productQuantity.quantity);
-		totalPrice += Number(product.price) * product.quantity;
+		checkProductStock(product, saleProduct.quantity);
+		totalPrice += Number(product.price) * saleProduct.quantity;
 		productsArray.push({
 			...product,
-			quantity: product.quantity,
+			quantity: saleProduct.quantity,
 		});
 	}
 
@@ -37,6 +37,42 @@ async function createManualSale(userId: number, products: ProductSaleSubset[]) {
 }
 
 async function createStripeSale(userId: number, products: ProductSaleSubset[]) {
+	const productsIds = products.map((product) => product.id);
+	const foundProducts = await productsRepository.findProductsByIds(
+		productsIds
+	);
+
+	checkIfUserOwnsProduct(userId, foundProducts);
+
+	const formattedStripeProducts = foundProducts.map((product) => ({
+		price_data: {
+			currency: 'brl',
+			product_data: {
+				name: product.name,
+			},
+			unit_amount: Number(product.price) * 100,
+		},
+		quantity: products.find((p) => p.id === product.id)?.quantity || 0,
+	}));
+
+	const session = await stripe.checkout.sessions.create({
+		payment_method_types: ['card'],
+		line_items: formattedStripeProducts,
+		mode: 'payment',
+		success_url: `${process.env.CLIENT_URL}/products`,
+		cancel_url: `${process.env.CLIENT_URL}/products`,
+		locale: 'pt-BR',
+	});
+
+	const { url } = session;
+
+	return url;
+}
+
+async function createStripeSeparateSale(
+	userId: number,
+	products: ProductSaleSubset[]
+) {
 	const productsIds = products.map((product) => product.id);
 	const foundProducts = await productsRepository.findProductsByIds(
 		productsIds

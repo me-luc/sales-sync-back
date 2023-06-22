@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { InvalidCredentialsError, UnauthorizedError } from '../errors/';
 import { authenticationRepository, sessionsRepository } from '../repositories';
+import { stripeService } from './stripe-service';
+import { stripe } from 'config/stripe';
 
 async function signIn(email: string, password: string) {
 	const user = await authenticationRepository.getUserByEmail(email);
@@ -27,6 +29,7 @@ async function signUp(email: string, password: string, name: string) {
 	);
 	const token = await createToken(String(newUser.id));
 	await createSession(newUser.id, token);
+
 	return token;
 }
 

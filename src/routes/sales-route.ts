@@ -5,6 +5,7 @@ import {
 	handlePaymentSucceed,
 	sellManually,
 	sellProduct,
+	updateStripeAccount,
 } from 'controllers';
 import { Router } from 'express';
 import { authenticateToken, validateSchema } from 'middlewares';
@@ -19,6 +20,8 @@ salesRouter
 	.all('/*', authenticateToken)
 	.get('/', getUserSales)
 	.post('/manual', validateSchema(ManualSaleBodySchema), sellManually)
-	.post('/', sellProduct);
+	.post('/', sellProduct)
+	.get('/user-stripe-account', updateStripeAccount)
+	.post('/payment-link');
 
 export { salesRouter };
