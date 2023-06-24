@@ -39,39 +39,6 @@ async function createManualSale(userId: number, products: ProductSaleSubset[]) {
 	);
 }
 
-async function createStripeSale(userId: number, products: ProductSaleSubset[]) {
-	const productsIds = products.map((product) => product.id);
-	const foundProducts = await productsRepository.findProductsByIds(
-		productsIds
-	);
-
-	checkIfUserOwnsProduct(userId, foundProducts);
-
-	const formattedStripeProducts = foundProducts.map((product) => ({
-		price_data: {
-			currency: 'brl',
-			product_data: {
-				name: product.name,
-			},
-			unit_amount: Number(product.price) * 100,
-		},
-		quantity: products.find((p) => p.id === product.id)?.quantity || 0,
-	}));
-
-	const session = await stripe.checkout.sessions.create({
-		payment_method_types: ['card'],
-		line_items: formattedStripeProducts,
-		mode: 'payment',
-		success_url: `${process.env.CLIENT_URL}/products`,
-		cancel_url: `${process.env.CLIENT_URL}/products`,
-		locale: 'pt-BR',
-	});
-
-	const { url } = session;
-
-	return url;
-}
-
 async function getUserSales(userId: number) {
 	const products = await salesRepository.getUserSales(userId);
 	const salesPerDate = products.map((sale) => ({
@@ -87,7 +54,7 @@ async function getUserSales(userId: number) {
 			name: product.product.name,
 		})),
 		paymentMethod: translatePaymentMethod(sale.payment.method),
-		totalPrice: Number(sale.payment.amount),
+		totalPrice: Number(sale.payment.amount) / 100,
 	}));
 	return salesPerDate;
 }
@@ -119,21 +86,24 @@ async function getPaymentLink(userId: number, products: ProductSaleSubset[]) {
 
 	const user = await userRepository.getUserById(userId);
 
+	console.log(totalPrice);
+
 	const session = await stripe.checkout.sessions.create({
 		payment_method_types: ['card'],
 		mode: 'payment',
 		line_items: formattedStripeProducts,
 		payment_intent_data: {
-			application_fee_amount: totalPrice * 0.05,
+			application_fee_amount: Number(totalPrice) * 0.05 * 100,
 			transfer_data: {
 				destination: user.stripeAccountId,
 			},
 			on_behalf_of: user.stripeAccountId,
+			receipt_email: user.email,
 		},
-		success_url: `${process.env.CLIENT_URL}/products`,
-		cancel_url: `${process.env.CLIENT_URL}/products`,
+		success_url: `${process.env.CLIENT_URL}/checkout/success`,
+		cancel_url: `${process.env.CLIENT_URL}/checkout/fail`,
 		locale: 'pt-BR',
-		expires_at: dayjs().add(30, 'minutes').unix(),
+		expires_at: dayjs().add(30, 'minute').unix(),
 	});
 
 	const productsArray = createProductsArray(foundProducts, products);
@@ -162,12 +132,40 @@ async function updateSaleStatus(
 	await salesRepository.updatePaymentStatus(sale.id, status);
 }
 
+async function refundStock(saleId: number) {
+	const saleProducts = await salesRepository.getSaleProductsBySaleId(saleId);
+	const productsToBeRefunded = saleProducts.map(
+		(saleProduct) => saleProduct.product
+	);
+	const productsIds = productsToBeRefunded.map((product) => product.id);
+	const foundProducts = await productsRepository.findProductsByIds(
+		productsIds
+	);
+
+	for (const product of foundProducts) {
+		const saleProduct = saleProducts.find(
+			(saleProduct) => saleProduct.productId === product.id
+		);
+		await productsRepository.updateProduct({
+			id: product.id,
+			quantity: product.quantity + saleProduct.quantity,
+		});
+	}
+}
+
+async function getPaymentByStripeId(stripePaymentId: string) {
+	const payment = await salesRepository.getPaymentByStripeId(stripePaymentId);
+	if (!payment) throw NotFoundError('Payment not found');
+	return payment;
+}
+
 export const salesService = {
 	createManualSale,
-	createStripeSale,
 	getUserSales,
 	getPaymentLink,
 	updateSaleStatus,
+	refundStock,
+	getPaymentByStripeId,
 };
 
 function checkIfUserOwnsProduct(userId: number, products: Product[]) {

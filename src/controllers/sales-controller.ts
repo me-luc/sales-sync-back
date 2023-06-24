@@ -36,26 +36,6 @@ export async function getUserSales(
 	}
 }
 
-export async function sellProduct(
-	req: AuthenticatedRequest,
-	res: Response,
-	next: NextFunction
-) {
-	try {
-		const { products } = req.body;
-		const userId = req.userId;
-
-		const url = await salesService.createStripeSale(
-			Number(userId),
-			products
-		);
-
-		return res.status(httpStatus.CREATED).send({ url });
-	} catch (error) {
-		next(error);
-	}
-}
-
 export async function getPaymentLink(
 	req: AuthenticatedRequest,
 	res: Response,
@@ -120,6 +100,15 @@ export async function handlePaymentFailed(
 ) {
 	try {
 		console.log('🚫 Payment failed', req.body);
+		const paymentIntent = req.body;
+
+		const payment = await salesService.getPaymentByStripeId(
+			paymentIntent.id
+		);
+
+		await salesService.updateSaleStatus(paymentIntent.id, 'CANCELLED');
+
+		await salesService.refundStock(payment.saleId);
 
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {

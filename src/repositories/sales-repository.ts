@@ -131,6 +131,17 @@ async function getPaymentByStripeId(stripeId: string) {
 	});
 }
 
+async function getSaleProductsBySaleId(saleId: number) {
+	return await prisma.saleProducts.findMany({
+		where: {
+			saleId,
+		},
+		include: {
+			product: true,
+		},
+	});
+}
+
 export const salesRepository = {
 	createManualSale,
 	addProductsToSale,
@@ -139,4 +150,5 @@ export const salesRepository = {
 	updatePaymentStripeId,
 	updatePaymentStatus,
 	getPaymentByStripeId,
+	getSaleProductsBySaleId,
 };

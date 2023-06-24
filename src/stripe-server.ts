@@ -63,21 +63,10 @@ app.post(
 					`${process.env.LOCAL_API_URL}/webhooks/payment-success`,
 					checkoutSession
 				);
-			case 'payment_intent.created':
-				const paymentIntentCreated = event.data.object;
-				await axios.post(
-					`${process.env.LOCAL_API_URL}/webhooks/payment-intent`,
-					paymentIntentCreated
-				);
 				break;
-			// case 'payment_intent.succeeded':
-			// 	const paymentIntentSucceeded = event.data.object;
-			// 	await axios.post(
-			// 		`${process.env.LOCAL_API_URL}/webhooks/payment-success`,
-			// 		paymentIntentSucceeded
-			// 	);
-			// 	break;
-			case 'payment_intent.cancelled':
+
+			case 'checkout.session.expired':
+			case 'checkout.session.failed':
 				const paymentIntentCancelled = event.data.object;
 				await axios.post(
 					`${process.env.LOCAL_API_URL}/webhooks/payment-cancel`,
