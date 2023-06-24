@@ -56,25 +56,30 @@ app.post(
 		console.log('🔔  Webhook received!\n\n', event);
 
 		switch (event.type) {
-			case 'payment_intent.succeeded':
-				const paymentIntentSucceeded = event.data.object;
+			case 'checkout.session.completed':
+				const checkoutSession = event.data
+					.object as Stripe.Checkout.Session;
 				await axios.post(
-					`${process.env.LOCAL_API_URL}/sales/stripe/success`,
-					paymentIntentSucceeded
+					`${process.env.LOCAL_API_URL}/webhooks/payment-success`,
+					checkoutSession
 				);
 				break;
-			case 'payment_intent.created':
-				const paymentIntentCreated = event.data.object;
-				await axios.post(
-					`${process.env.LOCAL_API_URL}/api/sales/stripe/intent`,
-					paymentIntentCreated
-				);
-			case 'payment_intent.cancelled':
+
+			case 'checkout.session.expired':
+			case 'checkout.session.failed':
 				const paymentIntentCancelled = event.data.object;
 				await axios.post(
-					`${process.env.LOCAL_API_URL}/api/sales/stripe/cancel`,
+					`${process.env.LOCAL_API_URL}/webhooks/payment-cancel`,
 					paymentIntentCancelled
 				);
+				break;
+			case 'account.updated':
+				const accountUpdated = event.data.object;
+				await axios.post(
+					`${process.env.LOCAL_API_URL}/webhooks/account-updated`,
+					accountUpdated
+				);
+				break;
 			default:
 				console.log(`Unhandled event type ${event.type}`);
 		}

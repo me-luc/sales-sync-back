@@ -36,7 +36,7 @@ export async function getUserSales(
 	}
 }
 
-export async function sellProduct(
+export async function getPaymentLink(
 	req: AuthenticatedRequest,
 	res: Response,
 	next: NextFunction
@@ -45,10 +45,7 @@ export async function sellProduct(
 		const { products } = req.body;
 		const userId = req.userId;
 
-		const url = await salesService.createStripeSale(
-			Number(userId),
-			products
-		);
+		const url = await salesService.getPaymentLink(Number(userId), products);
 
 		return res.status(httpStatus.CREATED).send({ url });
 	} catch (error) {
@@ -63,8 +60,6 @@ export async function updateStripeAccount(
 ) {
 	try {
 		const userId = req.userId;
-
-		console.log('Updating stripe account for user', userId, typeof userId);
 
 		const user = await userService.getUserById(Number(userId));
 
@@ -88,7 +83,9 @@ export async function handlePaymentSucceed(
 	next: NextFunction
 ) {
 	try {
-		console.log('Payment succeeded');
+		const paymentIntent = req.body;
+
+		await salesService.updateSaleStatus(paymentIntent.id, 'PAID');
 
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {
@@ -102,7 +99,16 @@ export async function handlePaymentFailed(
 	next: NextFunction
 ) {
 	try {
-		console.log('Payment failed');
+		console.log('🚫 Payment failed', req.body);
+		const paymentIntent = req.body;
+
+		const payment = await salesService.getPaymentByStripeId(
+			paymentIntent.id
+		);
+
+		await salesService.updateSaleStatus(paymentIntent.id, 'CANCELLED');
+
+		await salesService.refundStock(payment.saleId);
 
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {
@@ -116,10 +122,24 @@ export async function handlePaymentIntent(
 	next: NextFunction
 ) {
 	try {
-		const { paymentIntent } = req.body.data.object;
+		console.log('💰 Payment intent', req.body);
 
-		console.log(`💰 PaymentIntent status: ${paymentIntent.status}`);
+		res.sendStatus(httpStatus.OK);
+	} catch (error) {
+		next(error);
+	}
+}
 
+export async function handleAccountUpdated(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const { disabled_reason } = req.body;
+		const active = disabled_reason ? false : true;
+
+		await userService.updateUserStripeAccountStatus(req.body.id, active);
 		res.sendStatus(httpStatus.OK);
 	} catch (error) {
 		next(error);

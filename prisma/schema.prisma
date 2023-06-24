@@ -17,7 +17,7 @@ model User {
   password String
   phone    String? @unique @db.VarChar(15)
 
-  stripeAccountId        String  @unique @default("")
+  stripeAccountId        String? @unique @default("")
   stripeCompletedProfile Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -102,7 +102,7 @@ model Sale {
 enum PaymentStatus {
   PENDING
   PAID
-  CANCELED
+  CANCELLED
 }
 
 enum PaymentMethod {
@@ -115,7 +115,7 @@ model Payment {
   amount   Decimal
   status   PaymentStatus
   method   PaymentMethod
-  stripeId String?
+  stripeId String?       @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

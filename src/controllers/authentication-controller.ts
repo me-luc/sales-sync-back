@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import authenticationService from '../services/authentication-service';
 import httpStatus from 'http-status';
+import { userService } from 'services/user-service';
+import { AuthenticatedRequest } from 'types';
 
 export async function signIn(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -37,6 +39,26 @@ export async function checkToken(
 
 		await authenticationService.checkToken(token);
 		return res.sendStatus(httpStatus.OK);
+	} catch (err) {
+		next(err);
+	}
+}
+
+export async function getUserInfo(
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const userId = req.userId;
+
+		const userInfo = await userService.getUserById(Number(userId));
+
+		return res.status(httpStatus.OK).send({
+			name: userInfo.name,
+			stripeCompletedProfile: userInfo.stripeCompletedProfile,
+			stripeAccountId: userInfo.stripeAccountId,
+		});
 	} catch (err) {
 		next(err);
 	}

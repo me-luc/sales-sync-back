@@ -4,6 +4,7 @@ import { InvalidCredentialsError, UnauthorizedError } from '../errors/';
 import { authenticationRepository, sessionsRepository } from '../repositories';
 import { stripeService } from './stripe-service';
 import { stripe } from 'config/stripe';
+import { userRepository } from 'repositories/user-repository';
 
 async function signIn(email: string, password: string) {
 	const user = await authenticationRepository.getUserByEmail(email);
@@ -46,10 +47,22 @@ async function checkToken(token: string) {
 		throw UnauthorizedError('Invalid token!');
 }
 
+async function getUserFromToken(token: string) {
+	const { userId } = jwt.verify(
+		token,
+		process.env.ACCESS_TOKEN_SECRET as string
+	) as { userId: string };
+
+	const user = await userRepository.getUserById(Number(userId));
+	if (!user) throw UnauthorizedError('Invalid token!');
+	return user;
+}
+
 const authenticationService = {
 	signIn,
 	signUp,
 	checkToken,
+	getUserFromToken,
 };
 
 export default authenticationService;
